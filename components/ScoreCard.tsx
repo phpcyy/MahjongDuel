@@ -10,13 +10,13 @@ interface ScoreCardProps {
 const ScoreCard: React.FC<ScoreCardProps> = ({ player, score, isActive }) => {
   return (
     <div className={`
-        flex items-center gap-2 px-3 py-1 rounded-md transition-all duration-300
+        flex flex-col md:flex-row items-center gap-0 md:gap-2 px-2 md:px-3 py-0.5 md:py-1 rounded-md transition-all duration-300
         ${isActive ? 'bg-slate-800 text-white shadow-md transform scale-105' : 'text-slate-600 bg-transparent'}
     `}>
-      <span className="text-xs uppercase tracking-wider opacity-80">
+      <span className="text-[9px] md:text-xs uppercase tracking-wider opacity-80">
         {player === 1 ? '先手' : '后手'}
       </span>
-      <span className="text-xl font-mono font-bold">
+      <span className="text-base md:text-xl font-mono font-bold leading-none">
         {score}
       </span>
     </div>
