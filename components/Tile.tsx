@@ -9,34 +9,41 @@ interface TileProps {
   onClick: () => void;
 }
 
-const Tile: React.FC<TileProps> = ({ tile, isSelected, isSelectable, onClick }) => {
+// Reference Image Colors
+const C_RED = "#d62b2b";   // Rich Red
+const C_GREEN = "#007d45"; // Deep Jade Green
+const C_BLUE = "#1a4499";  // Royal Blue
+const C_BLACK = "#1a1a1a";
 
-  // Reference Image Colors
-  const C_RED = "#d62b2b";   // Rich Red
-  const C_GREEN = "#007d45"; // Deep Jade Green
-  const C_BLUE = "#1a4499";  // Royal Blue
-  const C_BLACK = "#1a1a1a";
+// Helper for Dots
+interface DotProps {
+  cx: number;
+  cy: number;
+  color: string;
+  type?: 'solid' | 'ring' | 'spiral';
+}
 
-  // Helper for Dots
-  const Dot = ({ cx, cy, color, type = 'solid' }: { cx: number, cy: number, color: string, type?: 'solid' | 'ring' | 'spiral' }) => {
-      if (type === 'spiral') {
-        return (
-            <g>
-                <circle cx={cx} cy={cy} r={26} stroke={C_BLUE} strokeWidth={2} fill="none" />
-                <circle cx={cx} cy={cy} r={20} stroke={C_GREEN} strokeWidth={3} fill="none" />
-                <circle cx={cx} cy={cy} r={14} stroke={C_RED} strokeWidth={3} fill="none" />
-                <circle cx={cx} cy={cy} r={6} fill={C_RED} />
-            </g>
-        )
-      }
+const Dot: React.FC<DotProps> = ({ cx, cy, color, type = 'solid' }) => {
+    if (type === 'spiral') {
       return (
-        <g>
-            <circle cx={cx} cy={cy} r={8} fill="white" stroke={color} strokeWidth={0} />
-            <circle cx={cx} cy={cy} r={7} fill="none" stroke={color} strokeWidth={2} />
-            <circle cx={cx} cy={cy} r={4} fill={color} />
-        </g>
-      );
-  }
+          <g>
+              <circle cx={cx} cy={cy} r={26} stroke={C_BLUE} strokeWidth={2} fill="none" />
+              <circle cx={cx} cy={cy} r={20} stroke={C_GREEN} strokeWidth={3} fill="none" />
+              <circle cx={cx} cy={cy} r={14} stroke={C_RED} strokeWidth={3} fill="none" />
+              <circle cx={cx} cy={cy} r={6} fill={C_RED} />
+          </g>
+      )
+    }
+    return (
+      <g>
+          <circle cx={cx} cy={cy} r={8} fill="white" stroke={color} strokeWidth={0} />
+          <circle cx={cx} cy={cy} r={7} fill="none" stroke={color} strokeWidth={2} />
+          <circle cx={cx} cy={cy} r={4} fill={color} />
+      </g>
+    );
+}
+
+const Tile: React.FC<TileProps> = ({ tile, isSelected, isSelectable, onClick }) => {
 
   // Render Dots (Pin) matching the reference image
   const renderDots = (value: number) => {

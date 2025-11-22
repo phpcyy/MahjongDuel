@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, X, Info } from 'lucide-react';
 import GameBoard from './components/GameBoard';
 import ScoreCard from './components/ScoreCard';
 import { distributeTiles, isTileSelectable, checkMatch, hasMovesRemaining, shuffleDeck } from './services/gameLogic';
@@ -15,6 +15,7 @@ const App: React.FC = () => {
   const [selectedTile, setSelectedTile] = useState<TileData | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [msg, setMsg] = useState<string>("开始");
+  const [showRules, setShowRules] = useState(false);
 
   // Initialize Game
   useEffect(() => {
@@ -122,11 +123,11 @@ const App: React.FC = () => {
     <div className="h-full w-full flex flex-col">
       
       {/* Minimalist Header - Light Theme */}
-      <header className="flex-none w-full h-12 bg-white/30 backdrop-blur-md flex items-center justify-between px-4 lg:px-8 z-20 border-b border-white/20 shadow-sm">
+      <header className="flex-none w-full h-12 bg-white/40 backdrop-blur-md flex items-center justify-between px-4 lg:px-8 z-20 border-b border-white/30 shadow-sm">
          {/* Left: Title */}
          <div className="flex items-center gap-4">
              <h1 className="text-lg font-bold text-slate-800 tracking-wide">麻将棋</h1>
-             <div className="text-xs text-slate-600 font-mono px-2 py-0.5 bg-white/50 rounded">
+             <div className="text-xs text-slate-600 font-mono px-2 py-0.5 bg-white/60 rounded">
                  {msg}
              </div>
          </div>
@@ -139,17 +140,30 @@ const App: React.FC = () => {
          </div>
 
          {/* Right: Actions */}
-         <div>
+         <div className="flex items-center gap-1">
+            <button
+                onClick={() => setShowRules(true)}
+                className="
+                    w-9 h-9 flex items-center justify-center
+                    text-slate-600 hover:text-slate-900
+                    rounded-full hover:bg-black/5
+                    transition-colors
+                "
+                title="规则说明"
+            >
+                <Info size={18} strokeWidth={2} />
+            </button>
             <button
                 onClick={startNewGame}
                 className="
+                    w-9 h-9 flex items-center justify-center
                     text-slate-600 hover:text-slate-900
-                    p-2 rounded-full hover:bg-black/5
+                    rounded-full hover:bg-black/5
                     transition-colors
                 "
                 title="重置游戏"
             >
-                <RotateCcw size={18} /> 
+                <RotateCcw size={18} strokeWidth={2} /> 
             </button>
          </div>
       </header>
@@ -162,11 +176,55 @@ const App: React.FC = () => {
          isTileSelectable={(id) => isTileSelectable(columns, id, selectedTile?.id)}
       />
 
+      {/* Rules Modal */}
+      {showRules && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px] flex items-center justify-center z-50 p-4 animate-fade-in" onClick={() => setShowRules(false)}>
+            <div className="bg-white/95 p-8 rounded-xl shadow-2xl max-w-md w-full" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-slate-800 tracking-tight">游戏规则</h2>
+                    <button onClick={() => setShowRules(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                        <X size={22} />
+                    </button>
+                </div>
+                <ul className="space-y-4 text-sm text-slate-600 leading-relaxed">
+                    <li className="flex gap-3">
+                        <span className="font-bold text-slate-800 whitespace-nowrap">1. 取牌：</span>
+                        <span>只能选取每列<span className="font-bold text-amber-700">最上方</span>或<span className="font-bold text-amber-700">最下方</span>的牌。</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="font-bold text-slate-800 whitespace-nowrap">2. 连击：</span>
+                        <span>当一张牌被选中后，露出的新牌也可以立即参与匹配。</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="font-bold text-slate-800 whitespace-nowrap">3. 消除：</span>
+                        <span>选中两张花色与点数相同的牌即可消除。</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="font-bold text-slate-800 whitespace-nowrap">4. 计分：</span>
+                        <span>数字牌按数字计分，字牌（风、箭）每张10分。</span>
+                    </li>
+                    <li className="flex gap-3">
+                        <span className="font-bold text-slate-800 whitespace-nowrap">5. 胜负：</span>
+                        <span>牌面清空后，总得分高者获胜。</span>
+                    </li>
+                </ul>
+                <div className="mt-8 text-center">
+                    <button 
+                        onClick={() => setShowRules(false)}
+                        className="px-8 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-medium transition-all shadow-lg hover:shadow-xl"
+                    >
+                        开始游戏
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* Game Over Modal */}
       {gameOver && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-50 animate-fade-in">
-            <div className="bg-[#fdfdfd] p-8 rounded-lg shadow-2xl text-center max-w-sm w-full border-t-4 border-amber-600">
-                <Trophy className="text-amber-600 mx-auto mb-4" size={40} strokeWidth={1.5} />
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center z-50 animate-fade-in">
+            <div className="bg-white p-8 rounded-xl shadow-2xl text-center max-w-sm w-full">
+                <Trophy className="text-amber-500 mx-auto mb-4" size={48} strokeWidth={1.5} />
                 
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">对局结束</h2>
                 <p className="text-slate-500 mb-8">
@@ -189,8 +247,8 @@ const App: React.FC = () => {
                     onClick={startNewGame}
                     className="
                         w-full bg-slate-900 hover:bg-slate-800 text-white
-                        font-bold py-3 px-6 rounded-md text-sm tracking-widest uppercase
-                        transition-colors shadow-lg
+                        font-bold py-3 px-6 rounded-lg text-sm tracking-widest uppercase
+                        transition-all shadow-lg hover:shadow-xl
                     "
                 >
                     再次挑战
