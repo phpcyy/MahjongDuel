@@ -7,6 +7,8 @@ import { distributeTiles, isTileSelectable, checkMatch, hasMovesRemaining, shuff
 import { TileData } from './types';
 import { COLUMNS_COUNT } from './constants';
 
+const STORAGE_KEY = 'MAHJONG_DUEL_GAME_STATE_V1';
+
 const App: React.FC = () => {
   const [columns, setColumns] = useState<(TileData | null)[][]>([]);
   const [p1Score, setP1Score] = useState(0);
@@ -17,18 +19,7 @@ const App: React.FC = () => {
   const [msg, setMsg] = useState<string>("开始");
   const [showRules, setShowRules] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
-
-  // Initialize Game
-  useEffect(() => {
-    startNewGame();
-    
-    // Listen for fullscreen change events (e.g., user presses ESC)
-    const handleFullScreenChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullScreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullScreenChange);
-  }, []);
+  const [restoreToast, setRestoreToast] = useState<string | null>(null);
 
   const startNewGame = () => {
     setColumns(distributeTiles());
@@ -38,7 +29,71 @@ const App: React.FC = () => {
     setSelectedTile(null);
     setGameOver(false);
     setMsg("开始");
+    setRestoreToast(null); // Clear any existing toast
   };
+
+  // Initialize Game (Load from Storage or Start New)
+  useEffect(() => {
+    const loadGame = () => {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          // Simple validation to ensure data integrity
+          if (state.columns && state.columns.length === COLUMNS_COUNT) {
+            setColumns(state.columns);
+            setP1Score(state.p1Score || 0);
+            setP2Score(state.p2Score || 0);
+            setCurrentPlayer(state.currentPlayer || 1);
+            setSelectedTile(state.selectedTile || null);
+            setGameOver(state.gameOver || false);
+            setMsg(state.msg || "恢复对局");
+            
+            // Show restoration toast
+            setRestoreToast("系统检测到您上次的对弈尚未结束，已自动恢复棋局。");
+            const timer = setTimeout(() => {
+                setRestoreToast(null);
+            }, 4000);
+            
+            return () => clearTimeout(timer);
+          }
+        } catch (e) {
+          console.error("Failed to load saved game:", e);
+        }
+      }
+      // Fallback if no save or load failed
+      startNewGame();
+    };
+
+    const cleanupTimer = loadGame();
+    
+    // Listen for fullscreen change events (e.g., user presses ESC)
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => {
+        document.removeEventListener('fullscreenchange', handleFullScreenChange);
+        if (typeof cleanupTimer === 'function') cleanupTimer();
+    };
+  }, []);
+
+  // Auto-Save Effect
+  useEffect(() => {
+    // Only save if columns are initialized to avoid overwriting with empty state on first render
+    if (columns.length > 0) {
+      const gameState = {
+        columns,
+        p1Score,
+        p2Score,
+        currentPlayer,
+        selectedTile,
+        gameOver,
+        msg
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+    }
+  }, [columns, p1Score, p2Score, currentPlayer, selectedTile, gameOver, msg]);
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -140,8 +195,18 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col relative">
       
+      {/* Restore Toast Notification */}
+      {restoreToast && (
+          <div className="absolute top-16 md:top-20 left-1/2 transform -translate-x-1/2 z-50 animate-[slideDown_0.5s_ease-out]">
+              <div className="bg-slate-800/90 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-3 border border-white/10 backdrop-blur-md">
+                  <Info size={20} className="text-amber-400" />
+                  <span className="text-sm font-medium tracking-wide">{restoreToast}</span>
+              </div>
+          </div>
+      )}
+
       {/* Minimalist Header - Responsive Layout */}
       {/* Reduced height from h-14 to h-11 for mobile landscape optimization */}
       <header className="flex-none w-full h-11 md:h-16 bg-white/40 backdrop-blur-md flex items-center justify-between px-2 md:px-8 z-20 border-b border-white/30 shadow-sm">
