@@ -82,16 +82,26 @@ const App: React.FC = () => {
   useEffect(() => {
     // Only save if columns are initialized to avoid overwriting with empty state on first render
     if (columns.length > 0) {
-      const gameState = {
-        columns,
-        p1Score,
-        p2Score,
-        currentPlayer,
-        selectedTile,
-        gameOver,
-        msg
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+      // Definition of initial state: No scores and no active selection
+      const isInitialState = p1Score === 0 && p2Score === 0 && selectedTile === null;
+
+      if (isInitialState) {
+        // If game is in initial state, we don't need to persist it.
+        // Clearing storage ensures that a refresh will generate a fresh random game (via startNewGame fallback)
+        // rather than restoring a game where no moves were made.
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        const gameState = {
+          columns,
+          p1Score,
+          p2Score,
+          currentPlayer,
+          selectedTile,
+          gameOver,
+          msg
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+      }
     }
   }, [columns, p1Score, p2Score, currentPlayer, selectedTile, gameOver, msg]);
 
